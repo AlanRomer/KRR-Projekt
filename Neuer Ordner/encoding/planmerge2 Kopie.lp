@@ -1,15 +1,16 @@
 %Start
+it_Ti(1,1).
 order(G,X,Y) :- init(object(shelf,G),value(at,(X,Y))).
 plan(D,D,1) :- init(object(robot,D),value(at,(_,_))). %plan(robot, plan, iteration)
 rp(D,X,Y,0,1,0) :- init(object(robot,D),value(at,(X,Y))). %robot_position(iD,X,Y,time, iteration, time in plan)
 rc(S) :- S = #count{ D : init(object(robot,D),value(at,(X,Y))) }.
 %translate occurs to positions time step at a time
-rp(D,X+V,Y+W,T,I,J):- rp(D,X,Y,T-1,I,J-1), occurs(object(robot,G),action(move,(V,W)),J), plan(D,G,I), T<25, not final(T,I).
+rp(D,X+V,Y+W,T,I,J):- rp(D,X,Y,T-1,I,J-1), occurs(object(robot,G),action(move,(V,W)),J), plan(D,G,I), it_Ti(T,I), T<25, not final(T,I).
 rp(D,X,Y,T+1,I,J):- rp(D,X,Y,T,I,J), rp(_,_,_,T+1,I,_), not stop(T,I), finish(D,T,I), not final(T-1,I), T<25.
-rp(D,X,Y,T,I+1,J):-rp(D,X,Y,T,I,J), rp(E,_,_,T,I+1,_), not rp(E,X,Y,T,I+1,_), not wp(D,_,T,I+1), not back(D,T,I+1) , E!=D.
+rp(D,X,Y,T,I+1,J):-rp(D,X,Y,T,I,J), it_Ti(T,I+1), rp(E,_,_,T,I+1,_), not rp(E,X,Y,T,I+1,_), not wp(D,_,T,I+1), not back(D,T,I+1) , E!=D.
 
-rp(D,V,W,T,I+1,J):-rp(D,X,Y,T,I,_), rp(D,V,W,T-1,I,J), rp(E,X,Y,T,I+1,_), not wp(D,_,T,I+1), back(E,T,I+1), E!=D.
-back(D,T,I+1):-rp(D,X,Y,T,I,_), rp(D,V,W,T-1,I,J), rp(E,X,Y,T,I+1,_), not wp(D,_,T,I+1), E!=D.
+rp(D,V,W,T,I+1,J):-rp(D,X,Y,T,I,_), it_Ti(T,I+1), rp(D,V,W,T-1,I,J), rp(E,X,Y,T,I+1,_), not wp(D,_,T,I+1), back(E,T,I+1), E!=D.
+back(D,T,I+1):-rp(D,X,Y,T,I,_), it_Ti(T,I+1), rp(D,V,W,T-1,I,J), rp(E,X,Y,T,I+1,_), not wp(D,_,T,I+1), E!=D.
 
 plan(D,G,I+1):-rp(D,X,Y,T,I,J), it_Ti(T,I+1), rp(Q,_,_,T,I+1,_), plan(D,G,I), not switch(D,_,X,Y,T,I), not static(D,Q,T,I).
 
@@ -48,7 +49,7 @@ c(S) :- S = #count{ T : final(T+1,I) }.
 :-wp(D,Q,T,I+1), wp(E,Q,T,I+1), wp(E,D,T,I+1), D<Q, Q<E.
 :-wp(Q,D,T,I+1), wp(Q,E,T,I+1), wp(D,E,T,I+1), D<Q, Q<E.
 :-wp(D,Q,T,I+1), wp(Q,E,T,I+1), wp(E,D,T,I+1).
-:- c(0).
+%:- c(0).
 
 t(T):-rp(_,_,_,T,_,_), not rp(_,_,_,T+1,_,_).
 #minimize {T:t(T)}.
