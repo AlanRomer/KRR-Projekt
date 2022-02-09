@@ -14,7 +14,7 @@ rp(D,X+V,Y+W,T+1):- rp(D,X,Y,T), occurs(object(robot,D),action(move,(V,W)),T+1),
 % final in the way into mover must increase iteration.... Doesn't happen if switch plans accurate 
 inithit(D,Q,X,Y,T,Z):-rp(D,X,Y,T), rp(Q,X,Y,Z), rp(D,V,W,T-1), not rp(Q,V,W,Z-1), not rp(Q,V,W,Z+1).
 inithit(D,Q,X,Y,0,Z):-rp(D,X,Y,0), rp(Q,X,Y,Z), D!=Q.
-gegen(D,Q,T,Z):-rp(D,X,Y,T), rp(Q,X,Y,Z), rp(D,V,W,T-1), rp(Q,V,W,Z+1), rp(D,A,B,T+1), not rp(Q,A,B,Z-1). 
+gegen(D,T):-rp(D,X,Y,T), rp(Q,X,Y,Z), rp(D,V,W,T-1), rp(Q,V,W,Z+1), rp(D,A,B,T+1), not rp(Q,A,B,Z-1). 
 finishhit(D,Q,T):-rp(Q,X,Y,T), order(D,X,Y), finish(D,Z), D!=Q.
 switch(D,0,Q,0,G,U):-switch(D,0,_,-1,Q,0), inithit(Q,G,X,Y,0,U).
 switch(D,T+Z-P,Q,P,G,U):-switch(D,T,_,_,Q,P), inithit(Q,G,X,Y,Z,U), P<Z, T+Z-P<K, end(K).
@@ -24,7 +24,7 @@ switch(D,T+Z-P,Q,P,G,U):-switch(D,T,_,_,Q,P), inithit(Q,G,X,Y,Z,U), P<Z, T+Z-P<K
 %tinish(A,Q,O,D):-binishhit(A,Q,O,E,T), switch(D,Z,_,_,E,W), finish(E,K), K+1-Z>T-W, T>W, O<Z+T-W.
 binish(Q,Q,U):-finish(Q,U).
 binish(D,Q,T+U-P):-switch(D,T,_,_,Q,P), finish(Q,U), T+U-P<K, end(K).
-1{ cinish(X,Y,Z) : binish(X,Y,Z), not ginish(X,Y,Z)}1:- occurs(object(robot,X),_,_).
+1{ cinish(X,Y,Z) : binish(X,Y,Z), not ginish(X,Y,Z)}1:- init(object(robot,X),_).
 ginish(X,Y,Z):-binish(X,Y,Z), binish(X,Y,T), T<Z.
 take(X) :- S=1, S= #count{ Y : binish(_,X,Y)}, binish(_,X,_).
 cinish(Y,Y,Z):-binish(Y,Y,Z), take(Y).
@@ -45,7 +45,9 @@ wayswitch(D,Z,A,B,E,W):-wayswitch(D,T,_,_,A,B), switch(D,Z,A,B,E,W), T<Z, cinish
 :-wayswitch(D,Z,A,B,C,_),wayswitch(D,Z,A,B,E,_), C!=E.
 :-wayswitch(D,Z,A,B,C,E),wayswitch(D,Z,A,B,C,F), F!=E.
 :-wayswitch(D,_,A,_,_,_), cinish(D,A,_), A!=D.
+:-wayswitch(D,_,D,I,_,_), cinish(D,D,_), I!=-1.
 %1 to 1 =3, 1,2=4 2,1=2 2,2 =3 cinishhit(
+
 cinishhit(A,D,Z,Q,T):-finishhit(D,Q,T), cinish(A,D,Z).
 :-cinishhit(A,Q,I,E,T), wayswitch(D,Z,_,_,E,W), wayswitch(D,P,E,W,_,_), W+1+P-Z>T, T>W, Z+T-W>I.
 :-cinishhit(A,Q,I,E,T), wayswitch(D,Z,_,_,E,W), cinish(D,E,P), W+1+P-Z>T, T>W, Z+T-W>I.
@@ -61,6 +63,7 @@ final(T):- rp(_,_,_,T), not rp(_,_,_,T+1), rc(S), S=#count{ D : finish(D,_) }.
 c(S) :- S = #count{ T : final(T) }.
 
 end(T+1):-rp(_,_,_,T), not rp(_,_,_,T+1).
+#show gegen/2.
 #show take/2.
 #show init/2.
 #show occurs/3.
